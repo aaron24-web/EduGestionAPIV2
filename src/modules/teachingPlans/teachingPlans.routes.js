@@ -3,7 +3,8 @@ import express from 'express';
 import {
   createPlanController,
   reviewPlanController,
-  getPlanController
+  getPlanController,
+  payPlanController
 } from './teachingPlans.controller.js';
 import { authMiddleware } from '../../core/middleware/authMiddleware.js';
 
@@ -111,5 +112,33 @@ router.get('/:id', authMiddleware, getPlanController);
  *         description: Plan no encontrado.
  */
 router.patch('/:id/review', authMiddleware, reviewPlanController);
+
+/**
+ * @openapi
+ * /teaching-plans/{id}/pay:
+ *   patch:
+ *     summary: (Cliente) Simula un pago exitoso para un plan aprobado
+ *     tags: [TeachingPlans]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: El ID del plan a pagar.
+ *     responses:
+ *       200:
+ *         description: Pago registrado. El plan ahora tiene payment_status 'paid'.
+ *       403:
+ *         description: Acceso denegado (no eres el cliente).
+ *       404:
+ *         description: Plan no encontrado.
+ *       409:
+ *         description: El plan ya estaba pagado.
+ */
+router.patch('/:id/pay', authMiddleware, payPlanController);
 
 export default router;

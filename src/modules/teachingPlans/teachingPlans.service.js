@@ -112,3 +112,37 @@ export const getPlanService = async (userId, userRole, planId) => {
 
   return plan;
 };
+
+/**
+ * (Cliente) Simula el pago de un plan de enseñanza.
+ */
+export const payPlanService = async (clientId, planId) => {
+  // 1. Verificar que el plan exista, pertenezca al cliente y esté aprobado
+  const { data: plan, error: planError } = await supabase
+    .from('teaching_plans')
+    .select('id, status, payment_status, request:requests(client_id)')
+    .eq('id', planId)
+    .single();
+
+  if (planError) throw new Error('Plan no encontrado.');
+  if (plan.request.client_id !== clientId) {
+    throw new Error('No autorizado: Este plan no pertenece a tus solicitudes.');
+  }
+  if (plan.status !== 'approved') {
+    throw new Error('Este plan no puede ser pagado hasta que sea aprobado.');
+  }
+  if (plan.payment_status === 'paid') {
+    throw new Error('Este plan ya ha sido pagado.');
+  }
+
+  // 2. Actualizar el estado de pago
+  const { data: updatedPlan, error: updateError } = await supabase
+    .from('teaching_plans')
+    .update({ payment_status: 'paid' }) // ¡Pagado!
+    .eq('id', planId)
+    .select()
+    .single();
+
+  if (updateError) throw updateError;
+  return updatedPlan;
+};

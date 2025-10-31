@@ -1,7 +1,8 @@
 import {
   createPlanService,
   reviewPlanService,
-  getPlanService
+  getPlanService,
+  payPlanService
 } from './teachingPlans.service.js';
 
 // Controlador para CREAR un plan
@@ -59,6 +60,25 @@ export const getPlanController = async (req, res) => {
   } catch (error) {
     if (error.message.includes('Acceso denegado')) return res.status(403).json({ error: error.message });
     if (error.message.includes('no encontrado')) return res.status(404).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+// (Añade esto al final del archivo)
+export const payPlanController = async (req, res) => {
+  try {
+    if (req.user.role !== 'client') {
+      return res.status(403).json({ error: 'Acceso denegado. Solo los clientes pueden pagar.' });
+    }
+    const clientId = req.user.id;
+    const { id: planId } = req.params;
+
+    const paidPlan = await payPlanService(clientId, planId);
+    return res.status(200).json(paidPlan);
+  } catch (error) {
+    if (error.message.includes('No autorizado')) return res.status(403).json({ error: error.message });
+    if (error.message.includes('no encontrado')) return res.status(404).json({ error: error.message });
+    if (error.message.includes('ya ha sido pagado')) return res.status(409).json({ error: error.message }); // 409 Conflict
     return res.status(500).json({ error: error.message });
   }
 };
