@@ -10,6 +10,7 @@ import teachingPlanRoutes from './teachingPlans/teachingPlans.routes.js';
 import availabilityRoutes from './availability/availability.routes.js';
 import sessionRoutes from './sessions/sessions.routes.js';
 import messageRoutes from './messages/messages.routes.js';
+import progressReportRoutes from './progress-reports/progress-reports.routes.js';
 // (Aquí importaremos los otros módulos a medida que los construyamos)
 // import studentRoutes from './students/students.routes.js';
 // import requestRoutes from './requests/requests.routes.js';
@@ -25,6 +26,7 @@ router.use('/teaching-plans', teachingPlanRoutes);
 router.use('/availability', availabilityRoutes);
 router.use('/sessions', sessionRoutes);
 router.use('/messages', messageRoutes);
+router.use('/progress-reports', progressReportRoutes);
 
 // Exportamos el enrutador principal
 export default router;
