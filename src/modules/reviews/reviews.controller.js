@@ -1,9 +1,9 @@
 import {
   createReviewService,
-  getReviewsByAcademyService
+  getMyReviewsService // <-- CAMBIO AQUÍ
 } from './reviews.service.js';
 
-// Controlador para CREAR una reseña
+// (El createReviewController se queda exactamente igual)
 export const createReviewController = async (req, res) => {
   try {
     // Solo un 'client' puede crear reseñas
@@ -30,11 +30,16 @@ export const createReviewController = async (req, res) => {
   }
 };
 
-// Controlador para OBTENER las reseñas de una academia
-export const getReviewsByAcademyController = async (req, res) => {
+// --- CONTROLADOR NUEVO Y CORREGIDO ---
+export const getMyReviewsController = async (req, res) => {
   try {
-    const { academyId } = req.params;
-    const reviews = await getReviewsByAcademyService(academyId);
+    // Solo asesores o admins (que son asesores de sus propios planes)
+    if (req.user.role !== 'assessor' && req.user.role !== 'admin_academy') {
+      return res.status(403).json({ error: 'Acceso denegado. Solo para asesores o administradores.' });
+    }
+    const assessorId = req.user.id;
+
+    const reviews = await getMyReviewsService(assessorId);
     return res.status(200).json(reviews);
   } catch (error) {
     return res.status(500).json({ error: error.message });

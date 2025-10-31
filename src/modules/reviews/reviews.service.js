@@ -49,34 +49,25 @@ export const createReviewService = async (clientId, planId, rating, comment) => 
   return data;
 };
 
-// --- ESTA ES LA FUNCIÓN CORREGIDA ---
+// --- FUNCIÓN NUEVA Y CORREGIDA ---
 /**
- * (Público) Obtiene todas las reseñas de una academia.
+ * (Asesor/Admin) Obtiene todas las reseñas de los planes que él ha impartido.
  */
-export const getReviewsByAcademyService = async (academyId) => {
-  
-  // 1. Encontrar todos los IDs de planes (teaching_plans)
-  // que pertenecen a solicitudes (requests) de la academia correcta.
-  
-  // LA CORRECCIÓN ESTÁ AQUÍ:
-  // Usamos 'requests!inner(academy_id)' (el nombre de la TABLA)
-  // y filtramos con 'requests.academy_id'
+export const getMyReviewsService = async (assessorId) => {
+  // 1. Encontrar todos los plan_id que este asesor ha creado
   const { data: plans, error: planError } = await supabase
     .from('teaching_plans')
-    .select('id, request:requests!inner(academy_id)') // ¡JOIN con la tabla 'requests'!
-    .eq('requests.academy_id', academyId); // ¡Filtra por 'requests.academy_id'!
+    .select('id') // Solo necesitamos los IDs
+    .eq('assessor_id', assessorId);
 
-  if (planError) {
-    console.error('Error al buscar planes:', planError);
-    throw planError;
-  }
-
+  if (planError) throw planError;
+  
   const planIds = plans.map(p => p.id);
   if (planIds.length === 0) {
-    return []; // Correcto: La academia no tiene reseñas
+    return []; // Este asesor no tiene planes, por lo tanto no tiene reseñas.
   }
 
-  // 2. Encontrar todas las reseñas (reviews) de esos planes
+  // 2. Encontrar todas las reseñas de esos planes
   const { data, error } = await supabase
     .from('reviews')
     .select(`
@@ -84,14 +75,12 @@ export const getReviewsByAcademyService = async (academyId) => {
       rating,
       comment,
       created_at,
-      client:client_id(full_name, avatar_url)
+      client:client_id(full_name, avatar_url),
+      plan:plan_id(id, request:requests(student:students(name)))
     `)
     .in('plan_id', planIds)
     .order('created_at', { ascending: false });
 
-  if (error) {
-    console.error('Error al buscar reseñas:', error);
-    throw error;
-  }
+  if (error) throw error;
   return data;
 };

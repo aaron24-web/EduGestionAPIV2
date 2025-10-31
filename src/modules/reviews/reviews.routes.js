@@ -1,8 +1,7 @@
-// src/modules/reviews/reviews.routes.js
 import express from 'express';
 import {
   createReviewController,
-  getReviewsByAcademyController
+  getMyReviewsController // <-- CAMBIO AQUÍ
 } from './reviews.controller.js';
 import { authMiddleware } from '../../core/middleware/authMiddleware.js';
 
@@ -47,24 +46,24 @@ const router = express.Router();
  */
 router.post('/', authMiddleware, createReviewController);
 
+
+// --- RUTA MODIFICADA ---
 /**
  * @openapi
- * /reviews/academy/{academyId}:
+ * /reviews/my-reviews:
  *   get:
- *     summary: (Público) Obtiene todas las reseñas de una academia
+ *     summary: (Asesor/Admin) Obtiene las reseñas de sus planes impartidos
  *     tags: [Reviews]
- *     parameters:
- *       - in: path
- *         name: academyId
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *           description: El ID de la academia.
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Una lista de reseñas (incluye datos del cliente).
+ *         description: Una lista de reseñas (incluye datos del cliente y plan).
+ *       403:
+ *         description: Acceso denegado (no eres asesor o admin).
  */
-router.get('/academy/:academyId', getReviewsByAcademyController);
+router.get('/my-reviews', authMiddleware, getMyReviewsController);
+
+// (Aquí eliminamos la ruta GET /reviews/academy/{academyId} que no funcionaba)
 
 export default router;
