@@ -11,9 +11,8 @@ import availabilityRoutes from './availability/availability.routes.js';
 import sessionRoutes from './sessions/sessions.routes.js';
 import messageRoutes from './messages/messages.routes.js';
 import progressReportRoutes from './progress-reports/progress-reports.routes.js';
-// (Aquí importaremos los otros módulos a medida que los construyamos)
-// import studentRoutes from './students/students.routes.js';
-// import requestRoutes from './requests/requests.routes.js';
+import reviewRoutes from './reviews/reviews.routes.js';
+
 
 const router = express.Router();
 
@@ -27,6 +26,7 @@ router.use('/availability', availabilityRoutes);
 router.use('/sessions', sessionRoutes);
 router.use('/messages', messageRoutes);
 router.use('/progress-reports', progressReportRoutes);
+router.use('/reviews', reviewRoutes);
 
 // Exportamos el enrutador principal
 export default router;
