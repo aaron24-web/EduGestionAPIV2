@@ -3,7 +3,8 @@ import express from 'express';
 import {
   createRequestController,
   assignAssessorController,
-  getRequestsController
+  getRequestsController,
+  getRequestByIdController // <-- AÑADE ESTO
 } from './requests.controller.js';
 import { authMiddleware } from '../../core/middleware/authMiddleware.js';
 
@@ -65,6 +66,35 @@ const router = express.Router();
 router.route('/')
   .get(authMiddleware, getRequestsController)
   .post(authMiddleware, createRequestController);
+
+// --- AÑADE ESTE BLOQUE NUEVO ---
+/**
+ * @openapi
+ * /requests/{id}:
+ *   get:
+ *     summary: (Cliente/Asesor/Admin) Obtiene los detalles de una solicitud
+ *     description: Devuelve los detalles de la solicitud y el 'conversation_id' para el chat.
+ *     tags: [Requests]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: El ID de la solicitud.
+ *     responses:
+ *       200:
+ *         description: Detalles de la solicitud.
+ *       403:
+ *         description: Acceso denegado.
+ *       404:
+ *         description: Solicitud no encontrada.
+ */
+router.get('/:id', authMiddleware, getRequestByIdController);
+// --- FIN DEL BLOQUE NUEVO ---
 
 /**
  * @openapi

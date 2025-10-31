@@ -87,3 +87,43 @@ export const getRequestsService = async (userId, userRole) => {
   if (error) throw error;
   return data;
 };
+
+/**
+ * Obtiene los detalles de UNA solicitud, incluyendo el ID de la conversación.
+ */
+export const getRequestByIdService = async (userId, userRole, requestId) => {
+  // 1. Obtener la solicitud y sus relaciones
+  const { data: request, error } = await supabase
+    .from('requests')
+    .select(`
+      *,
+      student:students(id, name),
+      academy:academies(id, name, owner_id),
+      client:client_id(id, full_name, email),
+      assessor:assigned_assessor_id(id, full_name, email),
+      conversation:conversations(id)
+    `)
+    .eq('id', requestId)
+    .single();
+
+  if (error) throw new Error('404: Solicitud no encontrada.');
+
+  // 2. --- ¡Seguridad! ---
+  // Verificar que el usuario logueado tenga permiso para ver esto
+  const isClient = userRole === 'client' && request.client.id === userId;
+  const isAssessor = (userRole === 'assessor' || userRole === 'admin_academy') && request.assessor?.id === userId;
+  const isAdmin = userRole === 'admin_academy' && request.academy.owner_id === userId;
+
+  if (!isClient && !isAssessor && !isAdmin) {
+    throw new Error('403: Acceso denegado a esta solicitud.');
+  }
+
+  // 3. Limpiar la respuesta
+  // El 'select' de Supabase devuelve 'conversation' como un array.
+  // Lo aplanamos para que sea más fácil de usar en el frontend.
+  const conversationId = request.conversation.length > 0 ? request.conversation[0].id : null;
+  delete request.conversation; // Quitamos el array
+  request.conversation_id = conversationId; // Añadimos el ID directamente
+
+  return request;
+};

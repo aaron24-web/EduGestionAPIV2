@@ -1,7 +1,8 @@
 import {
   createRequestService,
   assignAssessorService,
-  getRequestsService
+  getRequestsService,
+  getRequestByIdService
 } from './requests.service.js';
 
 // Controlador para CREAR una solicitud
@@ -56,6 +57,21 @@ export const getRequestsController = async (req, res) => {
     const requests = await getRequestsService(userId, userRole);
     return res.status(200).json(requests);
   } catch (error) {
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+// (Añade esto al final del archivo)
+export const getRequestByIdController = async (req, res) => {
+  try {
+    const { id: userId, role: userRole } = req.user;
+    const { id: requestId } = req.params;
+
+    const request = await getRequestByIdService(userId, userRole, requestId);
+    return res.status(200).json(request);
+  } catch (error) {
+    if (error.message.startsWith('403:')) return res.status(403).json({ error: error.message.substring(5) });
+    if (error.message.startsWith('404:')) return res.status(404).json({ error: error.message.substring(5) });
     return res.status(500).json({ error: error.message });
   }
 };
